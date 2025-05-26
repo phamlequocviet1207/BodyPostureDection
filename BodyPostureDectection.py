@@ -1,7 +1,7 @@
 import cv2 as cv
 import mediapipe as mp
 import math as m
-import time
+import numpy as np
 
 def findLength(x,y):
     l = m.sqrt(())
@@ -33,25 +33,27 @@ def findAngle(x1,y1,x2,y2):
 
 def sendWarning(x):
     pass
-
-# Initialize frame counters.
-good_frames = 0
-bad_frames  = 0
- 
-# Font type.
-font = cv2.FONT_HERSHEY_SIMPLEX
- 
-# Colors.
-blue = (255, 127, 0)
-red = (50, 50, 255)
-green = (127, 255, 0)
-dark_blue = (127, 20, 0)
-light_green = (127, 233, 100)
-yellow = (0, 255, 255)
-pink = (255, 0, 255)
  
 # Initialize mediapipe pose class.
+mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
-pose = mp_pose.Pose()
+
+cap = cv.VideoCapture(0)
+screen_size = (120,720)
+# with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
+while cap.isOpened():
+    ret, frame = cap.read()
+    cv.imshow('Mediapipe Feed', frame)
+    if (cv.waitKey(10) & 0xFF == ord('q')):
+        break
+
+
+    
+
+cap.release
+cv.destroyAllWindows
+
+
+
 
 
