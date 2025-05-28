@@ -40,15 +40,18 @@ mp_pose = mp.solutions.pose
 
 cap = cv.VideoCapture(0)
 screen_size = (120,720)
-# with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
-while cap.isOpened():
-    ret, frame = cap.read()
-    cv.imshow('Mediapipe Feed', frame)
-    if (cv.waitKey(10) & 0xFF == ord('q')):
-        break
+with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
+    while cap.isOpened():
+        ret, frame = cap.read()
 
+        results = pose.process(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
 
-    
+        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+        # print(results)
+
+        cv.imshow('Mediapipe Feed', frame)
+        if (cv.waitKey(10) & 0xFF == ord('q')):
+            break    
 
 cap.release
 cv.destroyAllWindows
