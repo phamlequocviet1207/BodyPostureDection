@@ -37,19 +37,59 @@ def sendWarning(x):
 # Initialize mediapipe pose class.
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
+(w,h) = (640,480)
+red = (50, 50, 255)
+green = (127, 255, 0)
+font = cv.FONT_HERSHEY_SIMPLEX
 
 cap = cv.VideoCapture(0)
-screen_size = (120,720)
 with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
     while cap.isOpened():
         ret, frame = cap.read()
 
+        frame = cv.resize(frame, (w,h), interpolation=cv.INTER_AREA)
+
         results = pose.process(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
 
+        try:
+            landmarks = results.pose_landmarks.landmark
+            lmPose = mp_pose.PoseLandmark
+
+            # print("CC")
+            # print(landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x)
+
+            # Left shoulder
+            l_shldr_x = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x * w
+            l_shldr_y = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].y * h
+
+            #Right shoulder
+            r_shldr_x = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER].x * w
+            r_shldr_y = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER].y * h
+
+            # Left ear
+            l_ear_x = landmarks[mp_pose.PoseLandmark.LEFT_EAR].x * w
+            l_ear_y = landmarks[mp_pose.PoseLandmark.LEFT_EAR].y * h
+
+            #Right ear
+            r_ear_x = landmarks[mp_pose.PoseLandmark.RIGHT_EAR].x * w
+            r_ear_y = landmarks[mp_pose.PoseLandmark.RIGHT_EAR].y * h
+
+            offset = findDistance(l_shldr_x,l_shldr_y,r_shldr_x,r_shldr_y)
+            print(offset)
+
+            if offset < 125:
+                cv.putText(frame, str(int(offset)) + ' Aligned', (w - 250, 30), font, 0.9, green, 2)
+            else:
+                cv.putText(frame, str(int(offset)) + ' Not Aligned', (w - 250, 30), font, 0.9, red, 2)
+
+        except:
+            pass
+
+        
         mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
         # print(results)
 
-        cv.imshow('Mediapipe Feed', frame)
+        cv.imshow('Screen', frame)
         if (cv.waitKey(10) & 0xFF == ord('q')):
             break    
 
