@@ -8,6 +8,7 @@ def findLength(x,y):
     return 
 
 def findDistance(x1,y1,x2,y2):
+    print("c")
     dist = m.sqrt((x1-x2)**2 + ((y1-y2)**2))
     return dist
 
@@ -40,6 +41,8 @@ mp_pose = mp.solutions.pose
 (w,h) = (640,480)
 red = (50, 50, 255)
 green = (127, 255, 0)
+yellow = (0, 255, 255)
+pink = (255, 0, 255)
 font = cv.FONT_HERSHEY_SIMPLEX
 
 cap = cv.VideoCapture(0)
@@ -56,7 +59,7 @@ with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
             lmPose = mp_pose.PoseLandmark
 
             # print("CC")
-            # print(landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x)
+            print(landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x)
 
             # Left shoulder
             l_shldr_x = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x * w
@@ -74,19 +77,48 @@ with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
             r_ear_x = landmarks[mp_pose.PoseLandmark.RIGHT_EAR].x * w
             r_ear_y = landmarks[mp_pose.PoseLandmark.RIGHT_EAR].y * h
 
+            # Hip
+            l_hip_x = mp_pose.landmark[lmPose.LEFT_HIP].x * w
+            l_hip_y = mp_pose.landmark[lmPose.LEFT_HIP].y * h
+
             offset = findDistance(l_shldr_x,l_shldr_y,r_shldr_x,r_shldr_y)
-            print(offset)
+            # print(offset)
 
             if offset < 125:
                 cv.putText(frame, str(int(offset)) + ' Aligned', (w - 250, 30), font, 0.9, green, 2)
             else:
                 cv.putText(frame, str(int(offset)) + ' Not Aligned', (w - 250, 30), font, 0.9, red, 2)
 
+            neck_inclination = findAngle(l_shldr_x, l_shldr_y, l_ear_x, l_ear_y)
+            torso_inclination = findAngle(l_hip_x, l_hip_y, l_shldr_x, l_shldr_y)   
+
+            # print(neck_inclination)
+            # print(torso_inclination)
+
+            # Draw landmarks.
+            cv.circle(frame, (l_shldr_x, l_shldr_y), 7, yellow, -1)
+            cv.circle(frame, (l_ear_x, l_ear_y), 7, yellow, -1)
+            
+            # Let's take y - coordinate of P3 100px above x1,  for display elegance.
+            # Although we are taking y = 0 while calculating angle between P1,P2,P3.
+            cv.circle(frame, (l_shldr_x, l_shldr_y - 100), 7, yellow, -1)
+            cv.circle(frame, (r_shldr_x, r_shldr_y), 7, pink, -1)
+            cv.circle(frame, (l_hip_x, l_hip_y), 7, yellow, -1)
+            
+            # Similarly, here we are taking y - coordinate 100px above x1. Note that
+            # you can take any value for y, not necessarily 100 or 200 pixels.
+            cv.circle(frame, (l_hip_x, l_hip_y - 100), 7, yellow, -1)
+            
+            # Put text, Posture and angle inclination.
+            # Text string for display.
+            angle_text_string = 'Neck : ' + str(int(neck_inclination)) + '  Torso : ' + str(int(torso_inclination))
+
+
         except:
             pass
 
         
-        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+        # mp_drawing.draw   _landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
         # print(results)
 
         cv.imshow('Screen', frame)
