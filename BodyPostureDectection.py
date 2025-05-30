@@ -27,7 +27,7 @@ def findAngle(x1,y1,x2,y2):
     # denominator = m.sqrt( (vector_12[0]**2) + (vector_12[1]**2) + (vector_13[0]**2) + (vector_13[1]**2))
     denominator = l12 * l13
 
-    print(numerator,denominator)
+    # print(numerator,denominator)
 
     theta = m.acos(numerator / denominator)
 
@@ -44,6 +44,8 @@ green = (127, 255, 0)
 yellow = (0, 255, 255)
 pink = (255, 0, 255)
 font = cv.FONT_HERSHEY_SIMPLEX
+good_frames = 0
+bad_frames  = 0
 
 cap = cv.VideoCapture(0)
 with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
@@ -99,7 +101,7 @@ with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
             cv.putText(frame, str(int(offset)) + ' Not Aligned', (w - 250, 30), font, 0.9, red, 2)
 
         neck_inclination = findAngle(l_shldr_x, l_shldr_y, l_ear_x, l_ear_y)
-        # torso_inclination = findAngle(l_hip_x, l_hip_y, l_shldr_x, l_shldr_y)   
+        torso_inclination = findAngle(l_hip_x, l_hip_y, l_shldr_x, l_shldr_y)   
 
         # print(neck_inclination)
         # print(torso_inclination)
@@ -120,9 +122,37 @@ with mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
         
         # Put text, Posture and angle inclination.
         # Text string for display.
-        # angle_text_string = 'Neck : ' + str(int(neck_inclination)) + '  Torso : ' + str(int(torso_inclination))
-
+        angle_text_string = 'Neck : ' + str(int(neck_inclination)) + '  Torso : ' + str(int(torso_inclination))
+        print(angle_text_string)
         
+        if neck_inclination < 25 and torso_inclination < 10:
+            bad_frames = 0
+            good_frames += 1
+            
+            cv.putText(frame, angle_text_string, (10, 30), font, 0.9, green, 2)
+            cv.putText(frame, str(int(neck_inclination)), (l_shldr_x + 10, l_shldr_y), font, 0.9, green, 2)
+            cv.putText(frame, str(int(torso_inclination)), (l_hip_x + 10, l_hip_y), font, 0.9, green, 2)
+        
+            # Join landmarks.
+            cv.line(frame, (l_shldr_x, l_shldr_y), (l_ear_x, l_ear_y), green, 4)
+            cv.line(frame, (l_shldr_x, l_shldr_y), (l_shldr_x, l_shldr_y - 100), green, 4)
+            cv.line(frame, (l_hip_x, l_hip_y), (l_shldr_x, l_shldr_y), green, 4)
+            cv.line(frame, (l_hip_x, l_hip_y), (l_hip_x, l_hip_y - 100), green, 4)
+        
+        else:
+            good_frames = 0
+            bad_frames += 1
+        
+            cv.putText(frame, angle_text_string, (10, 30), font, 0.9, red, 2)
+            cv.putText(frame, str(int(neck_inclination)), (l_shldr_x + 10, l_shldr_y), font, 0.9, red, 2)
+            cv.putText(frame, str(int(torso_inclination)), (l_hip_x + 10, l_hip_y), font, 0.9, red, 2)
+        
+            # Join landmarks.
+            cv.line(frame, (l_shldr_x, l_shldr_y), (l_ear_x, l_ear_y), red, 4)
+            cv.line(frame, (l_shldr_x, l_shldr_y), (l_shldr_x, l_shldr_y - 100), red, 4)
+            cv.line(frame, (l_hip_x, l_hip_y), (l_shldr_x, l_shldr_y), red, 4)
+            cv.line(frame, (l_hip_x, l_hip_y), (l_hip_x, l_hip_y - 100), red, 4)
+
         mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
         # print(results)
 
